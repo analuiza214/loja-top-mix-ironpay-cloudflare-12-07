@@ -813,7 +813,7 @@ export default function RastrearPedido() {
                   </div>
                 </div>
               </div>
-            )}
+            )} s
 
             {/* Card de reenvio confirmado (após pagar) */}
             {taxaPaga && (
