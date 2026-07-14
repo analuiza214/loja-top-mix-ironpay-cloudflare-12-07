@@ -27,58 +27,50 @@ export interface Product {
 }
 
 export const products: Product[] = [
+  // ── PRIMEIRO: Kit 650 Figurinhas (R$69,90) ──
   {
-    id: "prod-1",
-    slug: "album-250-figurinhas",
-    name: "Kit Álbum Copa 2026 + 250 Figurinhas",
-    price: 49.00,
-    originalPrice: 119.00,
-    installment: "5x R$ 9,80 sem juros",
-    pixPrice: 44.10,
+    id: "prod-7",
+    slug: "kit-650-figurinhas",
+    name: "Kit 650 Figurinhas Copa 2026",
+    price: 69.90,
+    originalPrice: 139.90,
+    installment: "5x R$ 13,98 sem juros",
+    pixPrice: 62.91,
     rating: 4.9,
-    reviewCount: 1847,
-    soldCount: "+7.000 vendidos",
-    badge: "MAIS VENDIDO — 1º em Álbuns Copa do Mundo",
-    description: "Kit completo com 1 álbum capa mole oficial Panini + 250 figurinhas (35 envelopes) do álbum Copa do Mundo 2026. Produto 100% original Panini.",
-    mainImage: "/images/album-capa-mole.jpg",
-    gallery: [
-      "/images/album-capa-mole.jpg",
-      "/images/slide-2.webp",
-      "/images/slide-3.webp",
-      "/images/slide-4.webp",
-      "/images/slide-5.webp",
-      "/images/slide-6.webp",
-      "/images/slide-7.webp"
-    ],
-    features: ["35 envelopes lacrados", "Álbum capa mole original Panini", "Frete grátis FULL", "Entrega rápida"],
+    reviewCount: 203,
+    soldCount: "+500 vendidos",
+    badge: "MAIOR KIT DE FIGURINHAS",
+    description: "Super kit com 650 figurinhas (93 envelopes) do álbum Copa do Mundo 2026. O maior kit de figurinhas disponível para completar seu álbum! Produto 100% original Panini.",
+    mainImage: "/images/650figurinhas.png",
+    gallery: ["/images/650figurinhas.png", "/images/figurinhascard1.png", "/images/figurinhascard2.png", "/images/figurinhascard3.png"],
+    features: ["93 envelopes lacrados", "650 figurinhas originais Panini", "Maior kit de figurinhas", "Frete grátis FULL", "Ideal para completar o álbum"],
     productReviews: [
       {
         id: 1,
-        author: "Lucas Pereira",
+        author: "Roberto Silveira",
         rating: 5,
-        text: "Produto incrível! Chegou em 2 dias, bem embalado e tudo lacrado. O álbum é lindo, capa firme e todas as 250 figurinhas originais Panini. Já completei quase metade do álbum!",
-        photo: "/images/review-extra-1.webp"
+        text: "Maior kit que já comprei! Com 650 figurinhas deu pra completar quase o álbum inteiro de uma vez. Todas originais Panini, pacotes lacrados e entrega super rápida. Vale cada centavo!"
       },
       {
         id: 2,
-        author: "Mariana Santos",
+        author: "Daniela Moura",
         rating: 5,
-        text: "Comprei para o meu filho e ele ficou feliz demais! O kit veio completo, o álbum é de qualidade excelente e as figurinhas todas originais. Com 250 figurinhas já deu pra preencher bastante. Super recomendo!",
-        photos: ["/images/review-extra-2.webp", "/images/review-extra-3.webp"]
+        text: "Comprei para dividir com meu irmão e deu super certo! 93 pacotes renderam muitas figurinhas boas e pouquíssimas repetidas. Produto 100% original e chegou em 3 dias. Melhor compra!",
+        photo: "/images/rev-8a.webp"
       },
       {
         id: 3,
-        author: "Rodrigo Almeida",
+        author: "Vinícius Almeida",
         rating: 5,
-        text: "Melhor custo-benefício que encontrei! Procurei em várias lojas e aqui estava bem mais barato com a mesma qualidade Panini. Entrega rápida e produto 100% original. Já indiquei para amigos.",
-        photo: "/images/review-extra-4.webp"
+        text: "Simplesmente o melhor custo-benefício! 650 figurinhas por esse preço é imbatível. Saíram várias douradas e especiais. Entrega rápida, tudo lacrado e original. Super recomendo!",
+        photos: ["/images/rev-11a.webp", "/images/rev-11b.webp"]
       },
       {
         id: 4,
-        author: "Gabriela Costa",
+        author: "Larissa Fernandes",
         rating: 5,
-        text: "Presenteei meu sobrinho e ele não largou mais! O álbum Copa 2026 é muito bem feito, as figurinhas vieram todas lacradas e originais. A embalagem chegou perfeita, sem amassados. Nota 10!",
-        photo: "/images/rev-mom-kid.webp"
+        text: "Kit absurdo de grande! Comprei pro meu filho e ele ficou dias abrindo os pacotes. As figurinhas são 100% originais Panini, qualidade impecável. Chegou tudo certo e bem embalado. Nota mil!",
+        photo: "/images/rev-9.webp"
       }
     ]
   },
@@ -334,49 +326,59 @@ export const products: Product[] = [
       }
     ]
   },
+  // ── ÚLTIMO: Kit Álbum + 250 Figurinhas (R$49,00) ──
   {
-    id: "prod-7",
-    slug: "kit-650-figurinhas",
-    name: "Kit 650 Figurinhas Copa 2026",
-    price: 69.90,
-    originalPrice: 139.90,
-    installment: "5x R$ 13,98 sem juros",
-    pixPrice: 62.91,
+    id: "prod-1",
+    slug: "album-250-figurinhas",
+    name: "Kit Álbum Copa 2026 + 250 Figurinhas",
+    price: 49.00,
+    originalPrice: 119.00,
+    installment: "5x R$ 9,80 sem juros",
+    pixPrice: 44.10,
     rating: 4.9,
-    reviewCount: 203,
-    soldCount: "+500 vendidos",
-    badge: "MAIOR KIT DE FIGURINHAS",
-    description: "Super kit com 650 figurinhas (93 envelopes) do álbum Copa do Mundo 2026. O maior kit de figurinhas disponível para completar seu álbum! Produto 100% original Panini.",
-    mainImage: "/images/650figurinhas.png",
-    gallery: ["/images/650figurinhas.png", "/images/figurinhascard1.png", "/images/figurinhascard2.png", "/images/figurinhascard3.png"],
-    features: ["93 envelopes lacrados", "650 figurinhas originais Panini", "Maior kit de figurinhas", "Frete grátis FULL", "Ideal para completar o álbum"],
+    reviewCount: 1847,
+    soldCount: "+7.000 vendidos",
+    badge: "MAIS VENDIDO — 1º em Álbuns Copa do Mundo",
+    description: "Kit completo com 1 álbum capa mole oficial Panini + 250 figurinhas (35 envelopes) do álbum Copa do Mundo 2026. Produto 100% original Panini.",
+    mainImage: "/images/album-capa-mole.jpg",
+    gallery: [
+      "/images/album-capa-mole.jpg",
+      "/images/slide-2.webp",
+      "/images/slide-3.webp",
+      "/images/slide-4.webp",
+      "/images/slide-5.webp",
+      "/images/slide-6.webp",
+      "/images/slide-7.webp"
+    ],
+    features: ["35 envelopes lacrados", "Álbum capa mole original Panini", "Frete grátis FULL", "Entrega rápida"],
     productReviews: [
       {
         id: 1,
-        author: "Roberto Silveira",
+        author: "Lucas Pereira",
         rating: 5,
-        text: "Maior kit que já comprei! Com 650 figurinhas deu pra completar quase o álbum inteiro de uma vez. Todas originais Panini, pacotes lacrados e entrega super rápida. Vale cada centavo!"
+        text: "Produto incrível! Chegou em 2 dias, bem embalado e tudo lacrado. O álbum é lindo, capa firme e todas as 250 figurinhas originais Panini. Já completei quase metade do álbum!",
+        photo: "/images/review-extra-1.webp"
       },
       {
         id: 2,
-        author: "Daniela Moura",
+        author: "Mariana Santos",
         rating: 5,
-        text: "Comprei para dividir com meu irmão e deu super certo! 93 pacotes renderam muitas figurinhas boas e pouquíssimas repetidas. Produto 100% original e chegou em 3 dias. Melhor compra!",
-        photo: "/images/rev-8a.webp"
+        text: "Comprei para o meu filho e ele ficou feliz demais! O kit veio completo, o álbum é de qualidade excelente e as figurinhas todas originais. Com 250 figurinhas já deu pra preencher bastante. Super recomendo!",
+        photos: ["/images/review-extra-2.webp", "/images/review-extra-3.webp"]
       },
       {
         id: 3,
-        author: "Vinícius Almeida",
+        author: "Rodrigo Almeida",
         rating: 5,
-        text: "Simplesmente o melhor custo-benefício! 650 figurinhas por esse preço é imbatível. Saíram várias douradas e especiais. Entrega rápida, tudo lacrado e original. Super recomendo!",
-        photos: ["/images/rev-11a.webp", "/images/rev-11b.webp"]
+        text: "Melhor custo-benefício que encontrei! Procurei em várias lojas e aqui estava bem mais barato com a mesma qualidade Panini. Entrega rápida e produto 100% original. Já indiquei para amigos.",
+        photo: "/images/review-extra-4.webp"
       },
       {
         id: 4,
-        author: "Larissa Fernandes",
+        author: "Gabriela Costa",
         rating: 5,
-        text: "Kit absurdo de grande! Comprei pro meu filho e ele ficou dias abrindo os pacotes. As figurinhas são 100% originais Panini, qualidade impecável. Chegou tudo certo e bem embalado. Nota mil!",
-        photo: "/images/rev-9.webp"
+        text: "Presenteei meu sobrinho e ele não largou mais! O álbum Copa 2026 é muito bem feito, as figurinhas vieram todas lacradas e originais. A embalagem chegou perfeita, sem amassados. Nota 10!",
+        photo: "/images/rev-mom-kid.webp"
       }
     ]
   }
