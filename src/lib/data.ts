@@ -41,8 +41,8 @@ export const products: Product[] = [
     soldCount: "+500 vendidos",
     badge: "MAIOR KIT DE FIGURINHAS",
     description: "Super kit com 650 figurinhas (93 envelopes) do álbum Copa do Mundo 2026. O maior kit de figurinhas disponível para completar seu álbum! Produto 100% original Panini.",
-    mainImage: "/images/650figurinhas.png",
-    gallery: ["/images/650figurinhas.png", "/images/figurinhascard1.png", "/images/figurinhascard2.png", "/images/figurinhascard3.png"],
+    mainImage: "/images/650figurinhas.webp",
+    gallery: ["/images/650figurinhas.webp", "/images/figurinhascard1.webp", "/images/figurinhascard2.webp", "/images/figurinhascard3.webp"],
     features: ["93 envelopes lacrados", "650 figurinhas originais Panini", "Maior kit de figurinhas", "Frete grátis FULL", "Ideal para completar o álbum"],
     productReviews: [
       {
@@ -225,8 +225,8 @@ export const products: Product[] = [
       "/images/kit-70-capa.webp",
       "/images/kit-70-slide2.webp",
       "/images/kit-70-slide3.webp",
-      "/images/kit-70-slide4.png",
-      "/images/kit-70-slide5.png"
+      "/images/kit-70-slide4.webp",
+      "/images/kit-70-slide5.webp"
     ],
     features: ["10 envelopes lacrados", "Álbum capa mole original Panini", "70 figurinhas originais", "Frete grátis", "Ótimo para presentear"],
     productReviews: [
@@ -269,9 +269,9 @@ export const products: Product[] = [
     soldCount: "+1.000 vendidos",
     badge: "PERFEITO PARA GUARDAR E ORGANIZAR",
     description: "Caixa organizadora para guardar e proteger suas figurinhas da Copa do Mundo 2026. Modelo oficial FIFA, com travas de segurança e tampa resistente. Acompanha chaveiro exclusivo! Disponível em várias cores. Produto 100% original.",
-    mainImage: "/images/caixa-guarda-main.png",
+    mainImage: "/images/caixa-guarda-main.webp",
     gallery: [
-      "/images/caixa-guarda-main.png",
+      "/images/caixa-guarda-main.webp",
       "wistia:dujywebmpq",
       "/images/caixa-guarda-azul.webp",
       "/images/caixa-guarda-azul-aberta.webp",

@@ -15,7 +15,7 @@ export function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 shrink-0">
           <img
-            src={getImagePath("/images/logo-topmix.png")}
+            src={getImagePath("/images/logo-topmix.webp")}
             alt="TopMix Brasil"
             className="h-9 w-9 rounded-full object-cover"
           />

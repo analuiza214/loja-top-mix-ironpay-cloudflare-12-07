@@ -9,7 +9,7 @@ export function Footer() {
         {/* Brand */}
         <div className="text-center sm:text-left mb-8 pb-6 border-b border-gray-800">
           <Link href="/" className="inline-flex items-center gap-2.5 mb-3">
-            <img src={getImagePath("/images/logo-topmix.png")} alt="TopMix Brasil" className="h-10 w-10 rounded-full object-cover" />
+            <img src={getImagePath("/images/logo-topmix.webp")} alt="TopMix Brasil" className="h-10 w-10 rounded-full object-cover" />
             <div className="text-left">
               <div className="font-black text-sm tracking-wide" style={{ color: "#f5b800" }}>TOP MIX</div>
               <div className="text-[10px] font-bold tracking-widest text-green-400">BRASIL</div>
@@ -49,7 +49,7 @@ export function Footer() {
           <h4 className="font-bold text-sm mb-3 text-gray-200 text-center sm:text-left">Formas de Pagamento</h4>
           <div className="flex justify-center sm:justify-start">
             <img
-              src={getImagePath("/images/pagamentos.png")}
+              src={getImagePath("/images/pagamentos.webp")}
               alt="Formas de pagamento: Amazon, Amex, Visa, Mastercard, PayPal, Pix"
               className="max-w-full rounded-xl"
               style={{ maxHeight: 60, objectFit: "contain" }}
