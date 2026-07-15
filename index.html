@@ -14,6 +14,40 @@
     <meta name="twitter:description" content="Kits de álbum e figurinhas da Copa do Mundo 2026. Produto 100% original Panini." />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
+<!--
+  ════════════════════════════════════════════════════════════════════
+  INSTRUÇÕES — cole estas linhas dentro do <head> do seu index.html,
+  logo ANTES de qualquer <script> ou <link rel="stylesheet">.
+  ════════════════════════════════════════════════════════════════════
+
+  O que cada linha faz:
+
+  1. rel="preload" da imagem hero
+     → Diz ao browser: "baixe essa imagem AGORA, é a mais importante da
+       página". Reduz o LCP de ~8,9 s para ~2–3 s no mobile.
+
+  2. dns-prefetch + preconnect do Wistia
+     → Abre a conexão com os servidores do Wistia antes do player ser
+       carregado, economizando ~300–600 ms de DNS/TLS quando o usuário
+       clicar para assistir.
+
+  ════════════════════════════════════════════════════════════════════
+-->
+
+<!-- 1. Preload da imagem hero (LCP) — ajuste o href se o caminho mudar -->
+<link
+  rel="preload"
+  as="image"
+  href="/images/hero-kit.webp"
+  fetchpriority="high"
+/>
+
+<!-- 2. Pré-conexão com o Wistia (reduz latência ao abrir os vídeos) -->
+<link rel="dns-prefetch" href="//fast.wistia.com" />
+<link rel="preconnect" href="https://fast.wistia.com" crossorigin />
+<link rel="dns-prefetch" href="//embed-ssl.wistia.com" />
+
+
     <!-- Google Tag Manager -->
     <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],

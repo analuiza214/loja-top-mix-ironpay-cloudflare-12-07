@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Link } from "wouter";
 import { products, reviews } from "@/lib/data";
 import { getImagePath } from "@/lib/utils";
 import { ShieldCheck, Truck, Star, BadgeCheck, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { WistiaPlayer } from "@/components/wistia-player";
+// ▶ Use o componente lazy no lugar do WistiaPlayer original
+import { WistiaPlayerLazy } from "@/components/wistia-player-lazy";
 
 // ── FAQ Section ──
 const homeFaqs = [
@@ -82,52 +83,20 @@ function getReviewerPhoto(author: string): string {
 }
 
 // ── Sphere / Coverflow Carousel ──
-// Cards are arranged on a virtual sphere surface:
-// - Center card faces you directly (flat, large, in front)
-// - Side cards curve away as if wrapped around a sphere
-// - Far cards are almost edge-on and fade out
 function getCardTransform(offset: number) {
   const absOff = Math.abs(offset);
   const sign = offset < 0 ? -1 : 1;
 
   if (absOff === 0) {
-    return {
-      x: "0%",
-      rotateY: 0,
-      scale: 1,
-      opacity: 1,
-      zIndex: 20,
-      filter: "brightness(1)",
-    };
+    return { x: "0%", rotateY: 0, scale: 1, opacity: 1, zIndex: 20, filter: "brightness(1)" };
   }
   if (absOff === 1) {
-    return {
-      x: `${sign * 72}%`,
-      rotateY: sign * -48,
-      scale: 0.76,
-      opacity: 0.88,
-      zIndex: 15,
-      filter: "brightness(0.88)",
-    };
+    return { x: `${sign * 72}%`, rotateY: sign * -48, scale: 0.76, opacity: 0.88, zIndex: 15, filter: "brightness(0.88)" };
   }
   if (absOff === 2) {
-    return {
-      x: `${sign * 115}%`,
-      rotateY: sign * -65,
-      scale: 0.55,
-      opacity: 0.55,
-      zIndex: 10,
-      filter: "brightness(0.72)",
-    };
+    return { x: `${sign * 115}%`, rotateY: sign * -65, scale: 0.55, opacity: 0.55, zIndex: 10, filter: "brightness(0.72)" };
   }
-  return {
-    x: `${sign * 145}%`,
-    rotateY: sign * -75,
-    scale: 0.35,
-    opacity: 0,
-    zIndex: 5,
-    filter: "brightness(0.5)",
-  };
+  return { x: `${sign * 145}%`, rotateY: sign * -75, scale: 0.35, opacity: 0, zIndex: 5, filter: "brightness(0.5)" };
 }
 
 function ReviewCard({ review }: { review: typeof reviews[number] }) {
@@ -143,26 +112,21 @@ function ReviewCard({ review }: { review: typeof reviews[number] }) {
         boxShadow: "0 16px 50px rgba(224,148,0,0.20), 0 4px 16px rgba(0,0,0,0.08)",
       }}
     >
-      {/* Top-right glow */}
       <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full pointer-events-none"
         style={{ background: "radial-gradient(circle, rgba(245,184,0,0.20) 0%, transparent 70%)" }} />
-      {/* Bottom-left glow */}
       <div className="absolute -bottom-8 -left-8 w-24 h-24 rounded-full pointer-events-none"
         style={{ background: "radial-gradient(circle, rgba(22,163,74,0.12) 0%, transparent 70%)" }} />
 
-      {/* Stars */}
       <div className="flex gap-0.5 relative z-10">
         {[...Array(review.rating)].map((_, i) => (
           <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400 drop-shadow-sm" />
         ))}
       </div>
 
-      {/* Text */}
       <p className="text-sm text-gray-700 leading-relaxed italic relative z-10 flex-1">
         "{review.text}"
       </p>
 
-      {/* Result photos */}
       {resultPhotos.length > 0 && (
         <div className="flex gap-2 relative z-10">
           {resultPhotos.map((p, i) => (
@@ -185,7 +149,6 @@ function ReviewCard({ review }: { review: typeof reviews[number] }) {
         </div>
       )}
 
-      {/* Author */}
       <div className="flex items-center gap-3 pt-3 border-t border-yellow-100 relative z-10">
         <div className="relative shrink-0">
           <img
@@ -232,11 +195,7 @@ function SphereCarousel() {
     <div className="relative select-none">
       <div
         className="relative overflow-visible"
-        style={{
-          perspective: "1100px",
-          perspectiveOrigin: "50% 50%",
-          height: 420,
-        }}
+        style={{ perspective: "1100px", perspectiveOrigin: "50% 50%", height: 420 }}
       >
         {visibleRange.map(offset => {
           const idx = ((active + offset) % total + total) % total;
@@ -252,9 +211,7 @@ function SphereCarousel() {
                 animate={{ x: "0%", opacity: 1, scale: 1, zIndex: 20, filter: "brightness(1)" }}
                 transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                 style={{
-                  position: "absolute",
-                  top: 0,
-                  left: "50%",
+                  position: "absolute", top: 0, left: "50%",
                   width: "min(340px, 80vw)",
                   marginLeft: "calc(min(340px, 80vw) / -2)",
                   transformStyle: "preserve-3d",
@@ -270,19 +227,10 @@ function SphereCarousel() {
           return (
             <motion.div
               key={`${idx}-${offset}`}
-              animate={{
-                x: t.x,
-                rotateY: t.rotateY,
-                scale: t.scale,
-                opacity: t.opacity,
-                zIndex: t.zIndex,
-                filter: t.filter,
-              }}
+              animate={{ x: t.x, rotateY: t.rotateY, scale: t.scale, opacity: t.opacity, zIndex: t.zIndex, filter: t.filter }}
               transition={{ duration: 0.55, ease: [0.25, 0.46, 0.45, 0.94] }}
               style={{
-                position: "absolute",
-                top: 0,
-                left: "50%",
+                position: "absolute", top: 0, left: "50%",
                 width: "min(340px, 80vw)",
                 marginLeft: "calc(min(340px, 80vw) / -2)",
                 transformStyle: "preserve-3d",
@@ -301,7 +249,6 @@ function SphereCarousel() {
         })}
       </div>
 
-      {/* Navigation */}
       <div className="flex items-center justify-center gap-4 mt-6">
         <button
           onClick={prev}
@@ -340,10 +287,12 @@ export default function Home() {
   return (
     <div className="w-full bg-white">
 
-      {/* HERO */}
+      {/* HERO
+          ▶ fetchPriority="high" + width/height explícito evitam LCP lento e layout shift.
+          ▶ O <link rel="preload"> correspondente deve estar no index.html (ver index-head-otimizado.html).
+      */}
       <section className="bg-white">
         <div className="max-w-5xl mx-auto px-4 pt-6 pb-4">
-
           <div
             className="relative rounded-2xl overflow-hidden shadow-lg cursor-pointer group"
             onClick={() => document.getElementById("kits")?.scrollIntoView({ behavior: "smooth" })}
@@ -353,15 +302,18 @@ export default function Home() {
               alt="Kit Queima de Estoque — 650 Figurinhas Copa do Mundo 2026"
               className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-[1.01]"
               fetchPriority="high"
-              decoding="async"
+              decoding="sync"
+              width={1200}
+              height={630}
             />
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300 rounded-2xl" />
           </div>
-
         </div>
       </section>
 
-      {/* VIDEO — POR QUE TÃO BARATO? */}
+      {/* VIDEO — POR QUE TÃO BARATO?
+          ▶ autoLoad=false → carrega só ao clicar (não bloqueia o render inicial).
+      */}
       <section className="py-8 bg-gray-50 px-4">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-4">
@@ -371,7 +323,7 @@ export default function Home() {
           </div>
           <div className="rounded-2xl overflow-hidden shadow-lg"
             style={{ border: "2px solid #e5e7eb", boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }}>
-            <WistiaPlayer mediaId="5hq52h0zlz" aspect={0.5625} />
+            <WistiaPlayerLazy mediaId="5hq52h0zlz" aspect={0.5625} autoLoad={false} />
           </div>
         </div>
       </section>
@@ -393,22 +345,10 @@ export default function Home() {
                 : null;
 
               const cardStyle =
-                idx === 0 ? {
-                  border: "2px solid #ff6600",
-                  boxShadow: "0 0 0 3px rgba(255,102,0,0.12), 0 4px 20px rgba(255,102,0,0.22)",
-                }
-                : idx === 3 ? {
-                  border: "2px solid #22c55e",
-                  boxShadow: "0 0 0 3px rgba(34,197,94,0.10), 0 4px 20px rgba(34,197,94,0.18)",
-                }
-                : idx === 4 ? {
-                  border: "2px solid #ff7700",
-                  boxShadow: "0 0 0 3px rgba(255,119,0,0.10), 0 4px 20px rgba(255,119,0,0.16)",
-                }
-                : {
-                  border: "1.5px solid #e5e7eb",
-                  boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
-                };
+                idx === 0 ? { border: "2px solid #ff6600", boxShadow: "0 0 0 3px rgba(255,102,0,0.12), 0 4px 20px rgba(255,102,0,0.22)" }
+                : idx === 3 ? { border: "2px solid #22c55e", boxShadow: "0 0 0 3px rgba(34,197,94,0.10), 0 4px 20px rgba(34,197,94,0.18)" }
+                : idx === 4 ? { border: "2px solid #ff7700", boxShadow: "0 0 0 3px rgba(255,119,0,0.10), 0 4px 20px rgba(255,119,0,0.16)" }
+                : { border: "1.5px solid #e5e7eb", boxShadow: "0 2px 10px rgba(0,0,0,0.06)" };
 
               return (
                 <motion.div
@@ -435,7 +375,14 @@ export default function Home() {
                         </div>
                       )}
                       <div className="p-3 aspect-square bg-gray-50 flex items-center justify-center">
-                        <img src={getImagePath(product.mainImage)} alt={product.name} className="w-full h-full object-contain" loading="lazy" decoding="async" />
+                        {/* ▶ loading="lazy" em todas as imagens de produto */}
+                        <img
+                          src={getImagePath(product.mainImage)}
+                          alt={product.name}
+                          className="w-full h-full object-contain"
+                          loading="lazy"
+                          decoding="async"
+                        />
                       </div>
                       <div className="p-2.5 flex flex-col flex-1 gap-1">
                         <p className="text-[11px] font-semibold text-gray-800 line-clamp-2 leading-snug">{product.name}</p>
@@ -491,7 +438,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* DEPOIMENTOS EM VÍDEO */}
+      {/* DEPOIMENTOS EM VÍDEO
+          ▶ autoLoad=true → cada player só inicializa quando chega na viewport.
+          ▶ O script Wistia (E-v1.js) é injetado uma única vez, no primeiro player visível.
+      */}
       <section className="py-12 bg-white px-4">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-8">
@@ -502,14 +452,14 @@ export default function Home() {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
             {[
-              { mediaId: "h9j9o2l9vc", aspect: 0.5625, name: "Vanessa Santos", city: "São Paulo, SP", stars: 5 },
-              { mediaId: "p8ikrk6u0t", aspect: 0.5625, name: "Roberta Soares", city: "Rio de Janeiro, RJ", stars: 5 },
-              { mediaId: "egdiv3fvbn", aspect: 0.75,   name: "Ana Lima",        city: "Belo Horizonte, MG", stars: 5 },
-              { mediaId: "yq0hnqjl7y", aspect: 0.75,   name: "Karol Silva",     city: "Recife, PE", stars: 5 },
-              { mediaId: "4jk3s1rj65", aspect: 0.75,   name: "Patrícia Mendes", city: "Curitiba, PR", stars: 5 },
+              { mediaId: "h9j9o2l9vc", aspect: 0.5625, name: "Vanessa Santos",  city: "São Paulo, SP",        stars: 5 },
+              { mediaId: "p8ikrk6u0t", aspect: 0.5625, name: "Roberta Soares",  city: "Rio de Janeiro, RJ",   stars: 5 },
+              { mediaId: "egdiv3fvbn", aspect: 0.75,   name: "Ana Lima",        city: "Belo Horizonte, MG",   stars: 5 },
+              { mediaId: "yq0hnqjl7y", aspect: 0.75,   name: "Karol Silva",     city: "Recife, PE",           stars: 5 },
+              { mediaId: "4jk3s1rj65", aspect: 0.75,   name: "Patrícia Mendes", city: "Curitiba, PR",         stars: 5 },
             ].map((dep) => (
               <div key={dep.mediaId} className="flex flex-col rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-gray-50">
-                <WistiaPlayer mediaId={dep.mediaId} aspect={dep.aspect} />
+                <WistiaPlayerLazy mediaId={dep.mediaId} aspect={dep.aspect} autoLoad={true} />
                 <div className="px-3 py-2.5">
                   <div className="flex gap-0.5 mb-1">
                     {Array.from({ length: dep.stars }).map((_, i) => (
@@ -585,7 +535,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FAQ — OBJEÇÕES PRINCIPAIS */}
+      {/* FAQ */}
       <section className="py-10 bg-gray-50 px-4">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-6">
