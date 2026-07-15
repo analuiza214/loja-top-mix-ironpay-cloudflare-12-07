@@ -1,11 +1,73 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
 import { products, reviews } from "@/lib/data";
 import { getImagePath } from "@/lib/utils";
-import { ShieldCheck, Truck, Star, BadgeCheck, ChevronLeft, ChevronRight } from "lucide-react";
+import { ShieldCheck, Truck, Star, BadgeCheck, ChevronLeft, ChevronRight, AlertTriangle, ShoppingBag, CreditCard } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-// ▶ Use o componente lazy no lugar do WistiaPlayer original
-import { WistiaPlayerLazy } from "@/components/wistia-player-lazy";
+import { WistiaPlayer } from "@/components/wistia-player";
+
+// ── Live purchase notifications ──
+const buyers = [
+  { name: "João M.",        city: "São Paulo, SP",        action: "acabou de garantir o kit aqui no site",  photo: "https://i.pravatar.cc/40?img=1"  },
+  { name: "Ana Paula",      city: "Rio de Janeiro, RJ",   action: "comprou 2 kits aqui no site",            photo: "https://i.pravatar.cc/40?img=2"  },
+  { name: "Renata C.",      city: "Belo Horizonte, MG",   action: "acabou de garantir o kit",               photo: "https://i.pravatar.cc/40?img=3"  },
+  { name: "Lucas T.",       city: "Brasília, DF",         action: "acabou de comprar aqui no site",         photo: "https://i.pravatar.cc/40?img=4"  },
+  { name: "Maria J.",       city: "Curitiba, PR",         action: "comprou 3 kits aqui no site",            photo: "https://i.pravatar.cc/40?img=5"  },
+  { name: "Pedro A.",       city: "Fortaleza, CE",        action: "acabou de garantir o kit",               photo: "https://i.pravatar.cc/40?img=6"  },
+  { name: "Camila R.",      city: "Salvador, BA",         action: "comprou 2 kits aqui no site",            photo: "https://i.pravatar.cc/40?img=7"  },
+  { name: "Felipe S.",      city: "Manaus, AM",           action: "garantiu o último kit disponível",       photo: "https://i.pravatar.cc/40?img=8"  },
+  { name: "Beatriz N.",     city: "Recife, PE",           action: "acabou de comprar aqui no site",         photo: "https://i.pravatar.cc/40?img=9"  },
+  { name: "Thiago O.",      city: "Porto Alegre, RS",     action: "comprou 1 kit aqui no site",             photo: "https://i.pravatar.cc/40?img=10" },
+  { name: "Larissa P.",     city: "Goiânia, GO",          action: "acabou de garantir o kit",               photo: "https://i.pravatar.cc/40?img=11" },
+  { name: "Rodrigo V.",     city: "Maceió, AL",           action: "comprou 2 kits aqui no site",            photo: "https://i.pravatar.cc/40?img=13" },
+  { name: "Priscila M.",    city: "Natal, RN",            action: "garantiu o kit agora mesmo",             photo: "https://i.pravatar.cc/40?img=14" },
+  { name: "Eduardo C.",     city: "Campo Grande, MS",     action: "acabou de comprar aqui no site",         photo: "https://i.pravatar.cc/40?img=15" },
+  { name: "Juliana F.",     city: "Teresina, PI",         action: "comprou 3 kits aqui no site",            photo: "https://i.pravatar.cc/40?img=16" },
+  { name: "Rafael L.",      city: "João Pessoa, PB",      action: "acabou de garantir o kit",               photo: "https://i.pravatar.cc/40?img=17" },
+  { name: "Vanessa S.",     city: "Aracaju, SE",          action: "comprou 2 kits aqui no site",            photo: "https://i.pravatar.cc/40?img=18" },
+  { name: "Bruno K.",       city: "Cuiabá, MT",           action: "garantiu o kit agora mesmo",             photo: "https://i.pravatar.cc/40?img=19" },
+  { name: "Patrícia H.",    city: "Macapá, AP",           action: "acabou de comprar aqui no site",         photo: "https://i.pravatar.cc/40?img=20" },
+  { name: "Diego W.",       city: "Rio Branco, AC",       action: "comprou 1 kit aqui no site",             photo: "https://i.pravatar.cc/40?img=21" },
+  { name: "Isabela Q.",     city: "Porto Velho, RO",      action: "acabou de garantir o kit",               photo: "https://i.pravatar.cc/40?img=22" },
+  { name: "Henrique B.",    city: "Palmas, TO",           action: "comprou 2 kits aqui no site",            photo: "https://i.pravatar.cc/40?img=23" },
+  { name: "Aline G.",       city: "Florianópolis, SC",    action: "garantiu o kit agora mesmo",             photo: "https://i.pravatar.cc/40?img=24" },
+  { name: "Marcelo D.",     city: "Vitória, ES",          action: "acabou de comprar aqui no site",         photo: "https://i.pravatar.cc/40?img=26" },
+  { name: "Tatiane X.",     city: "Belém, PA",            action: "comprou 3 kits aqui no site",            photo: "https://i.pravatar.cc/40?img=27" },
+  { name: "Gustavo E.",     city: "São Luís, MA",         action: "acabou de garantir o kit",               photo: "https://i.pravatar.cc/40?img=28" },
+  { name: "Fernanda Z.",    city: "Campinas, SP",         action: "comprou 2 kits aqui no site",            photo: "https://i.pravatar.cc/40?img=29" },
+  { name: "Adriano Y.",     city: "Ribeirão Preto, SP",   action: "garantiu o kit agora mesmo",             photo: "https://i.pravatar.cc/40?img=30" },
+  { name: "Simone U.",      city: "Santos, SP",           action: "acabou de comprar aqui no site",         photo: "https://i.pravatar.cc/40?img=31" },
+  { name: "Carlos F.",      city: "Uberlândia, MG",       action: "comprou 1 kit aqui no site",             photo: "https://i.pravatar.cc/40?img=33" },
+  { name: "Débora I.",      city: "Contagem, MG",         action: "acabou de garantir o kit",               photo: "https://i.pravatar.cc/40?img=34" },
+  { name: "Leandro J.",     city: "Joinville, SC",        action: "comprou 2 kits aqui no site",            photo: "https://i.pravatar.cc/40?img=35" },
+  { name: "Mônica T.",      city: "Londrina, PR",         action: "garantiu o kit agora mesmo",             photo: "https://i.pravatar.cc/40?img=36" },
+  { name: "Alexandre R.",   city: "Sorocaba, SP",         action: "acabou de comprar aqui no site",         photo: "https://i.pravatar.cc/40?img=37" },
+  { name: "Cíntia N.",      city: "Duque de Caxias, RJ",  action: "comprou 3 kits aqui no site",            photo: "https://i.pravatar.cc/40?img=38" },
+  { name: "Weslley O.",     city: "Nova Iguaçu, RJ",      action: "acabou de garantir o kit",               photo: "https://i.pravatar.cc/40?img=39" },
+  { name: "Karina P.",      city: "Osasco, SP",           action: "comprou 2 kits aqui no site",            photo: "https://i.pravatar.cc/40?img=40" },
+  { name: "Fábio Q.",       city: "São Bernardo, SP",     action: "garantiu o kit agora mesmo",             photo: "https://i.pravatar.cc/40?img=41" },
+  { name: "Natália V.",     city: "Guarulhos, SP",        action: "acabou de comprar aqui no site",         photo: "https://i.pravatar.cc/40?img=42" },
+  { name: "Sérgio W.",      city: "Mogi das Cruzes, SP",  action: "comprou 1 kit aqui no site",             photo: "https://i.pravatar.cc/40?img=43" },
+  { name: "Elaine H.",      city: "Santo André, SP",      action: "acabou de garantir o kit",               photo: "https://i.pravatar.cc/40?img=45" },
+  { name: "Paulo G.",       city: "São José, SC",         action: "comprou 2 kits aqui no site",            photo: "https://i.pravatar.cc/40?img=46" },
+  { name: "Cláudia B.",     city: "Feira de Santana, BA", action: "garantiu o kit agora mesmo",             photo: "https://i.pravatar.cc/40?img=48" },
+  { name: "Tiago D.",       city: "Caucaia, CE",          action: "acabou de comprar aqui no site",         photo: "https://i.pravatar.cc/40?img=49" },
+  { name: "Viviane C.",     city: "Olinda, PE",           action: "comprou 3 kits aqui no site",            photo: "https://i.pravatar.cc/40?img=50" },
+  { name: "Anderson L.",    city: "Caruaru, PE",          action: "acabou de garantir o kit",               photo: "https://i.pravatar.cc/40?img=51" },
+  { name: "Cristiane M.",   city: "Pelotas, RS",          action: "comprou 2 kits aqui no site",            photo: "https://i.pravatar.cc/40?img=52" },
+  { name: "Roberto S.",     city: "Caxias do Sul, RS",    action: "garantiu o kit agora mesmo",             photo: "https://i.pravatar.cc/40?img=53" },
+  { name: "Sandra K.",      city: "Anápolis, GO",         action: "acabou de comprar aqui no site",         photo: "https://i.pravatar.cc/40?img=54" },
+  { name: "Márcio E.",      city: "São José dos Campos",  action: "comprou 1 kit aqui no site",             photo: "https://i.pravatar.cc/40?img=55" },
+];
+
+function shuffleArray<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 // ── FAQ Section ──
 const homeFaqs = [
@@ -62,6 +124,111 @@ function HomeFaqSection() {
   );
 }
 
+const TOTAL_STOCK = 120;
+const INITIAL_SOLD = 31;
+
+function StockSection() {
+  const [sold, setSold] = useState(INITIAL_SOLD);
+  const [visible, setVisible] = useState(true);
+  const queueRef = useRef<typeof buyers>([]);
+  const posRef = useRef(0);
+  const [buyer, setBuyer] = useState(() => {
+    queueRef.current = shuffleArray(buyers);
+    posRef.current = 0;
+    return queueRef.current[0];
+  });
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => {
+        posRef.current += 1;
+        if (posRef.current >= queueRef.current.length) {
+          const last = queueRef.current[queueRef.current.length - 1];
+          let next = shuffleArray(buyers);
+          while (next[0] === last) next = shuffleArray(buyers);
+          queueRef.current = next;
+          posRef.current = 0;
+        }
+        setBuyer(queueRef.current[posRef.current]);
+        setSold(s => (s < TOTAL_STOCK - 1 ? s + 1 : s));
+        setVisible(true);
+      }, 350);
+    }, 5000);
+    return () => clearInterval(id);
+  }, []);
+
+  const remaining = TOTAL_STOCK - sold;
+  const pct = Math.round((sold / TOTAL_STOCK) * 100);
+
+  return (
+    <div className="space-y-2.5 w-full">
+      <div className="flex items-center justify-between gap-2 text-xs font-semibold flex-wrap">
+        <span className="flex items-center gap-1 text-red-600">
+          <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+          Oferta acaba enquanto o estoque durar!
+        </span>
+        <span
+          className="flex items-center gap-1 text-white text-[10px] font-black px-2 py-0.5 rounded-full shrink-0"
+          style={{ background: "linear-gradient(90deg, #15803d, #22c55e)" }}
+        >
+          <Truck className="h-3 w-3" /> Frete Grátis • Aproveite
+        </span>
+      </div>
+      <div>
+        <div className="h-4 bg-gray-200 rounded-full overflow-hidden relative">
+          <motion.div
+            className="absolute inset-y-0 left-0 rounded-full"
+            style={{ background: "linear-gradient(90deg, #22c55e 0%, #eab308 55%, #ef4444 100%)" }}
+            initial={{ width: `${pct - 4}%` }}
+            animate={{ width: `${pct}%` }}
+            transition={{ duration: 1.8, ease: "easeOut" }}
+          />
+          <span className="absolute inset-0 flex items-center justify-center text-[9px] font-black text-white drop-shadow">
+            {pct}% vendido
+          </span>
+        </div>
+        <div className="flex justify-between mt-1 text-[10px] font-semibold">
+          <span className="text-green-600">✅ {sold} vendidos</span>
+          <span className="text-red-500">⚡ Apenas {remaining} restantes!</span>
+        </div>
+      </div>
+      <AnimatePresence mode="wait">
+        {visible && (
+          <motion.div
+            key={buyer.name}
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 8 }}
+            transition={{ duration: 0.28 }}
+            className="flex items-center gap-2.5 py-2 px-3 rounded-xl bg-white shadow-md"
+            style={{ border: "1.5px solid #e5e7eb", boxShadow: "0 2px 10px rgba(0,0,0,0.08)" }}
+          >
+            <div className="relative shrink-0">
+              <img
+                src={buyer.photo}
+                alt={buyer.name}
+                className="w-9 h-9 rounded-full object-cover border-2 border-green-400"
+                onError={e => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(buyer.name)}&background=22c55e&color=fff&size=40`; }}
+              />
+              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-white" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] font-black text-gray-900 leading-tight">{buyer.name} <span className="text-gray-400 font-normal">de {buyer.city}</span></p>
+              <p className="text-[10px] text-gray-600 leading-tight truncate">{buyer.action}</p>
+            </div>
+            <div className="shrink-0 flex flex-col items-center gap-0.5">
+              <span className="flex items-center gap-0.5 text-[9px] font-black text-green-600 bg-green-50 px-1.5 py-0.5 rounded-full">
+                <ShoppingBag className="h-2.5 w-2.5" /> agora
+              </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 // ── Reviewer photos ──
 const reviewerPhotos: Record<string, string> = {
   "Carlos A.":   "https://i.pravatar.cc/80?img=12",
@@ -83,20 +250,52 @@ function getReviewerPhoto(author: string): string {
 }
 
 // ── Sphere / Coverflow Carousel ──
+// Cards are arranged on a virtual sphere surface:
+// - Center card faces you directly (flat, large, in front)
+// - Side cards curve away as if wrapped around a sphere
+// - Far cards are almost edge-on and fade out
 function getCardTransform(offset: number) {
   const absOff = Math.abs(offset);
   const sign = offset < 0 ? -1 : 1;
 
   if (absOff === 0) {
-    return { x: "0%", rotateY: 0, scale: 1, opacity: 1, zIndex: 20, filter: "brightness(1)" };
+    return {
+      x: "0%",
+      rotateY: 0,
+      scale: 1,
+      opacity: 1,
+      zIndex: 20,
+      filter: "brightness(1)",
+    };
   }
   if (absOff === 1) {
-    return { x: `${sign * 72}%`, rotateY: sign * -48, scale: 0.76, opacity: 0.88, zIndex: 15, filter: "brightness(0.88)" };
+    return {
+      x: `${sign * 72}%`,
+      rotateY: sign * -48,
+      scale: 0.76,
+      opacity: 0.88,
+      zIndex: 15,
+      filter: "brightness(0.88)",
+    };
   }
   if (absOff === 2) {
-    return { x: `${sign * 115}%`, rotateY: sign * -65, scale: 0.55, opacity: 0.55, zIndex: 10, filter: "brightness(0.72)" };
+    return {
+      x: `${sign * 115}%`,
+      rotateY: sign * -65,
+      scale: 0.55,
+      opacity: 0.55,
+      zIndex: 10,
+      filter: "brightness(0.72)",
+    };
   }
-  return { x: `${sign * 145}%`, rotateY: sign * -75, scale: 0.35, opacity: 0, zIndex: 5, filter: "brightness(0.5)" };
+  return {
+    x: `${sign * 145}%`,
+    rotateY: sign * -75,
+    scale: 0.35,
+    opacity: 0,
+    zIndex: 5,
+    filter: "brightness(0.5)",
+  };
 }
 
 function ReviewCard({ review }: { review: typeof reviews[number] }) {
@@ -112,21 +311,26 @@ function ReviewCard({ review }: { review: typeof reviews[number] }) {
         boxShadow: "0 16px 50px rgba(224,148,0,0.20), 0 4px 16px rgba(0,0,0,0.08)",
       }}
     >
+      {/* Top-right glow */}
       <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full pointer-events-none"
         style={{ background: "radial-gradient(circle, rgba(245,184,0,0.20) 0%, transparent 70%)" }} />
+      {/* Bottom-left glow */}
       <div className="absolute -bottom-8 -left-8 w-24 h-24 rounded-full pointer-events-none"
         style={{ background: "radial-gradient(circle, rgba(22,163,74,0.12) 0%, transparent 70%)" }} />
 
+      {/* Stars */}
       <div className="flex gap-0.5 relative z-10">
         {[...Array(review.rating)].map((_, i) => (
           <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400 drop-shadow-sm" />
         ))}
       </div>
 
+      {/* Text */}
       <p className="text-sm text-gray-700 leading-relaxed italic relative z-10 flex-1">
         "{review.text}"
       </p>
 
+      {/* Result photos */}
       {resultPhotos.length > 0 && (
         <div className="flex gap-2 relative z-10">
           {resultPhotos.map((p, i) => (
@@ -149,6 +353,7 @@ function ReviewCard({ review }: { review: typeof reviews[number] }) {
         </div>
       )}
 
+      {/* Author */}
       <div className="flex items-center gap-3 pt-3 border-t border-yellow-100 relative z-10">
         <div className="relative shrink-0">
           <img
@@ -195,7 +400,11 @@ function SphereCarousel() {
     <div className="relative select-none">
       <div
         className="relative overflow-visible"
-        style={{ perspective: "1100px", perspectiveOrigin: "50% 50%", height: 420 }}
+        style={{
+          perspective: "1100px",
+          perspectiveOrigin: "50% 50%",
+          height: 420,
+        }}
       >
         {visibleRange.map(offset => {
           const idx = ((active + offset) % total + total) % total;
@@ -211,7 +420,9 @@ function SphereCarousel() {
                 animate={{ x: "0%", opacity: 1, scale: 1, zIndex: 20, filter: "brightness(1)" }}
                 transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                 style={{
-                  position: "absolute", top: 0, left: "50%",
+                  position: "absolute",
+                  top: 0,
+                  left: "50%",
                   width: "min(340px, 80vw)",
                   marginLeft: "calc(min(340px, 80vw) / -2)",
                   transformStyle: "preserve-3d",
@@ -227,10 +438,19 @@ function SphereCarousel() {
           return (
             <motion.div
               key={`${idx}-${offset}`}
-              animate={{ x: t.x, rotateY: t.rotateY, scale: t.scale, opacity: t.opacity, zIndex: t.zIndex, filter: t.filter }}
+              animate={{
+                x: t.x,
+                rotateY: t.rotateY,
+                scale: t.scale,
+                opacity: t.opacity,
+                zIndex: t.zIndex,
+                filter: t.filter,
+              }}
               transition={{ duration: 0.55, ease: [0.25, 0.46, 0.45, 0.94] }}
               style={{
-                position: "absolute", top: 0, left: "50%",
+                position: "absolute",
+                top: 0,
+                left: "50%",
                 width: "min(340px, 80vw)",
                 marginLeft: "calc(min(340px, 80vw) / -2)",
                 transformStyle: "preserve-3d",
@@ -249,6 +469,7 @@ function SphereCarousel() {
         })}
       </div>
 
+      {/* Navigation */}
       <div className="flex items-center justify-center gap-4 mt-6">
         <button
           onClick={prev}
@@ -284,36 +505,67 @@ function SphereCarousel() {
 
 // ── Main Page ──
 export default function Home() {
+  const mainProduct = products[0];
+
   return (
     <div className="w-full bg-white">
 
-      {/* HERO
-          ▶ fetchPriority="high" + width/height explícito evitam LCP lento e layout shift.
-          ▶ O <link rel="preload"> correspondente deve estar no index.html (ver index-head-otimizado.html).
-      */}
+      {/* HERO */}
       <section className="bg-white">
         <div className="max-w-5xl mx-auto px-4 pt-6 pb-4">
-          <div
-            className="relative rounded-2xl overflow-hidden shadow-lg cursor-pointer group"
-            onClick={() => document.getElementById("kits")?.scrollIntoView({ behavior: "smooth" })}
-          >
-            <img
-              src={getImagePath("/images/hero-kit.webp")}
-              alt="Kit Queima de Estoque — 650 Figurinhas Copa do Mundo 2026"
-              className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-[1.01]"
-              fetchPriority="high"
-              decoding="sync"
-              width={1200}
-              height={630}
-            />
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300 rounded-2xl" />
+
+          <Link href={`/produto/${mainProduct.slug}`} className="block">
+            <div className="relative rounded-2xl overflow-hidden shadow-lg cursor-pointer group">
+              <img
+                src={getImagePath("/images/hero-kit.jpg")}
+                alt="Kit Álbum Copa do Mundo 2026 + 250 Figurinhas"
+                className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-[1.01]"
+                fetchPriority="high"
+                decoding="async"
+              />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300 rounded-2xl" />
+            </div>
+          </Link>
+
+          <div className="mt-5 space-y-4">
+            <div className="text-center">
+              {mainProduct.originalPrice && (
+                <div className="text-xs text-gray-400 line-through">De R$ {mainProduct.originalPrice.toFixed(2).replace('.', ',')}</div>
+              )}
+              <div className="flex items-baseline gap-2 justify-center">
+                <span className="text-4xl font-black" style={{ color: "#E09400" }}>
+                  R$ {mainProduct.price.toFixed(2).replace('.', ',')}
+                </span>
+                <span className="bg-red-500 text-white text-xs font-black px-2 py-0.5 rounded-lg">-59% OFF</span>
+              </div>
+              <div className="text-sm font-semibold text-green-700 mt-0.5">
+                💚 No Pix: R$ {mainProduct.pixPrice.toFixed(2).replace('.', ',')}
+                <span className="text-gray-400 font-normal text-xs"> (10% OFF)</span>
+              </div>
+              <div className="text-xs text-gray-400">{mainProduct.installment} no cartão sem juros</div>
+            </div>
+
+            <Link href={`/produto/${mainProduct.slug}`} className="block">
+              <button
+                className="pulse-blue w-full py-4 rounded-xl font-black text-base text-white shadow-md hover:opacity-90 active:scale-95 transition-all"
+                style={{ background: "linear-gradient(135deg, #1e3a8a, #2563eb, #1d4ed8)" }}
+              >
+                🛒 COMPRAR AGORA
+              </button>
+            </Link>
+
+            <StockSection />
+
+            <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 pt-1 pb-2 border-t border-gray-100 text-xs text-gray-500">
+              <span className="flex items-center gap-1"><Truck className="h-3.5 w-3.5 text-green-600" /> Frete Grátis</span>
+              <span className="flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5 text-green-600" /> 100% Original Panini</span>
+              <span className="flex items-center gap-1"><CreditCard className="h-3.5 w-3.5 text-green-600" /> Parcela sem juros</span>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* VIDEO — POR QUE TÃO BARATO?
-          ▶ autoLoad=false → carrega só ao clicar (não bloqueia o render inicial).
-      */}
+      {/* VIDEO — POR QUE TÃO BARATO? */}
       <section className="py-8 bg-gray-50 px-4">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-4">
@@ -323,13 +575,13 @@ export default function Home() {
           </div>
           <div className="rounded-2xl overflow-hidden shadow-lg"
             style={{ border: "2px solid #e5e7eb", boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }}>
-            <WistiaPlayerLazy mediaId="5hq52h0zlz" aspect={0.5625} autoLoad={false} />
+            <WistiaPlayer mediaId="5hq52h0zlz" aspect={0.5625} />
           </div>
         </div>
       </section>
 
       {/* PRODUCTS */}
-      <section id="kits" className="py-10 bg-white">
+      <section className="py-10 bg-white">
         <div className="max-w-5xl mx-auto px-4">
           <div className="text-center mb-5">
             <p className="text-xs font-black tracking-widest uppercase text-green-700 mb-1">Coleção Copa 2026</p>
@@ -345,10 +597,22 @@ export default function Home() {
                 : null;
 
               const cardStyle =
-                idx === 0 ? { border: "2px solid #ff6600", boxShadow: "0 0 0 3px rgba(255,102,0,0.12), 0 4px 20px rgba(255,102,0,0.22)" }
-                : idx === 3 ? { border: "2px solid #22c55e", boxShadow: "0 0 0 3px rgba(34,197,94,0.10), 0 4px 20px rgba(34,197,94,0.18)" }
-                : idx === 4 ? { border: "2px solid #ff7700", boxShadow: "0 0 0 3px rgba(255,119,0,0.10), 0 4px 20px rgba(255,119,0,0.16)" }
-                : { border: "1.5px solid #e5e7eb", boxShadow: "0 2px 10px rgba(0,0,0,0.06)" };
+                idx === 0 ? {
+                  border: "2px solid #ff6600",
+                  boxShadow: "0 0 0 3px rgba(255,102,0,0.12), 0 4px 20px rgba(255,102,0,0.22)",
+                }
+                : idx === 3 ? {
+                  border: "2px solid #22c55e",
+                  boxShadow: "0 0 0 3px rgba(34,197,94,0.10), 0 4px 20px rgba(34,197,94,0.18)",
+                }
+                : idx === 4 ? {
+                  border: "2px solid #ff7700",
+                  boxShadow: "0 0 0 3px rgba(255,119,0,0.10), 0 4px 20px rgba(255,119,0,0.16)",
+                }
+                : {
+                  border: "1.5px solid #e5e7eb",
+                  boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
+                };
 
               return (
                 <motion.div
@@ -375,14 +639,7 @@ export default function Home() {
                         </div>
                       )}
                       <div className="p-3 aspect-square bg-gray-50 flex items-center justify-center">
-                        {/* ▶ loading="lazy" em todas as imagens de produto */}
-                        <img
-                          src={getImagePath(product.mainImage)}
-                          alt={product.name}
-                          className="w-full h-full object-contain"
-                          loading="lazy"
-                          decoding="async"
-                        />
+                        <img src={getImagePath(product.mainImage)} alt={product.name} className="w-full h-full object-contain" loading="lazy" decoding="async" />
                       </div>
                       <div className="p-2.5 flex flex-col flex-1 gap-1">
                         <p className="text-[11px] font-semibold text-gray-800 line-clamp-2 leading-snug">{product.name}</p>
@@ -438,10 +695,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* DEPOIMENTOS EM VÍDEO
-          ▶ autoLoad=true → cada player só inicializa quando chega na viewport.
-          ▶ O script Wistia (E-v1.js) é injetado uma única vez, no primeiro player visível.
-      */}
+      {/* DEPOIMENTOS EM VÍDEO */}
       <section className="py-12 bg-white px-4">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-8">
@@ -450,16 +704,15 @@ export default function Home() {
             <p className="text-sm text-gray-500 mt-1">Veja quem já garantiu o kit e recebeu em casa</p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {[
-              { mediaId: "h9j9o2l9vc", aspect: 0.5625, name: "Vanessa Santos",  city: "São Paulo, SP",        stars: 5 },
-              { mediaId: "p8ikrk6u0t", aspect: 0.5625, name: "Roberta Soares",  city: "Rio de Janeiro, RJ",   stars: 5 },
-              { mediaId: "egdiv3fvbn", aspect: 0.75,   name: "Ana Lima",        city: "Belo Horizonte, MG",   stars: 5 },
-              { mediaId: "yq0hnqjl7y", aspect: 0.75,   name: "Karol Silva",     city: "Recife, PE",           stars: 5 },
-              { mediaId: "4jk3s1rj65", aspect: 0.75,   name: "Patrícia Mendes", city: "Curitiba, PR",         stars: 5 },
+              { mediaId: "h9j9o2l9vc", aspect: 0.5625, name: "Vanessa Santos", city: "São Paulo, SP", stars: 5 },
+              { mediaId: "p8ikrk6u0t", aspect: 0.5625, name: "Roberta Soares", city: "Rio de Janeiro, RJ", stars: 5 },
+              { mediaId: "egdiv3fvbn", aspect: 0.75,   name: "Ana Lima",        city: "Belo Horizonte, MG", stars: 5 },
+              { mediaId: "4jk3s1rj65", aspect: 0.75,   name: "Patrícia Mendes", city: "Curitiba, PR", stars: 5 },
             ].map((dep) => (
               <div key={dep.mediaId} className="flex flex-col rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-gray-50">
-                <WistiaPlayerLazy mediaId={dep.mediaId} aspect={dep.aspect} autoLoad={true} />
+                <WistiaPlayer mediaId={dep.mediaId} aspect={dep.aspect} />
                 <div className="px-3 py-2.5">
                   <div className="flex gap-0.5 mb-1">
                     {Array.from({ length: dep.stars }).map((_, i) => (
@@ -535,7 +788,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FAQ */}
+      {/* FAQ — OBJEÇÕES PRINCIPAIS */}
       <section className="py-10 bg-gray-50 px-4">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-6">
