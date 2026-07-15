@@ -340,9 +340,9 @@ export const products: Product[] = [
     soldCount: "+7.000 vendidos",
     badge: "MAIS VENDIDO — 1º em Álbuns Copa do Mundo",
     description: "Kit completo com 1 álbum capa mole oficial Panini + 250 figurinhas (35 envelopes) do álbum Copa do Mundo 2026. Produto 100% original Panini.",
-    mainImage: "/images/album-capa-mole.jpg",
+    mainImage: "/images/album-capa-mole.webp",
     gallery: [
-      "/images/album-capa-mole.jpg",
+      "/images/album-capa-mole.webp",
       "/images/slide-2.webp",
       "/images/slide-3.webp",
       "/images/slide-4.webp",

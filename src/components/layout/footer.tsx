@@ -65,10 +65,10 @@ export function Footer() {
           <h4 className="font-bold text-sm mb-4 text-gray-200 text-center sm:text-left">Site 100% Seguro</h4>
           <div className="flex flex-wrap gap-3 justify-center sm:justify-start items-center">
             {[
-              { src: "/images/selo-compra-segura.jpg",  alt: "Compra 100% Segura" },
-              { src: "/images/selo-site-seguro.jpg",    alt: "Site Seguro — SSL Certificado" },
-              { src: "/images/selo-google-seguro.jpg",  alt: "Google Site Seguro" },
-              { src: "/images/selo-reclame-aqui.jpg",   alt: "RA1000 — Reclame Aqui" },
+              { src: "/images/selo-compra-segura.webp",  alt: "Compra 100% Segura" },
+              { src: "/images/selo-site-seguro.webp",    alt: "Site Seguro — SSL Certificado" },
+              { src: "/images/selo-google-seguro.webp",  alt: "Google Site Seguro" },
+              { src: "/images/selo-reclame-aqui.webp",   alt: "RA1000 — Reclame Aqui" },
             ].map(({ src, alt }) => (
               <div
                 key={src}
