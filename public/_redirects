@@ -1,3 +1,0 @@
-# Cloudflare Pages — SPA fallback
-# Todas as rotas nao encontradas redirecionam para index.html (React Router)
-/*  /index.html  200
