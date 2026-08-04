@@ -6,6 +6,20 @@ name = "loja-top-mix"
 compatibility_date = "2024-01-01"
 pages_build_output_dir = "dist"
 
+# ──────────────────────────────────────────────────────────────
+# KV NAMESPACE — Rate limit por IP no /api/pix/create
+# Passos para criar:
+#   1. Acesse: Cloudflare Dashboard → Workers & Pages → KV
+#   2. Clique em "Create namespace" → nome: pix-ratelimit
+#   3. Copie o "Namespace ID" gerado
+#   4. Cole no campo id abaixo
+#   5. No painel do seu Pages: Settings → Functions → KV namespace bindings
+#      → Add binding: Variable name = PIX_RATELIMIT, namespace = pix-ratelimit
+# ──────────────────────────────────────────────────────────────
+[[kv_namespaces]]
+binding = "PIX_RATELIMIT"
+id      = "44122051ba9a4c83a7d09019a3671894"
+
 # Variaveis de ambiente (configure os VALORES no painel do Cloudflare Pages)
 # Settings -> Environment variables -> Add variable
 #

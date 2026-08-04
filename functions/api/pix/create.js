@@ -1,5 +1,5 @@
 // Cloudflare Pages Function — /api/pix/create
-// Convertido de netlify/functions/pix-create.js
+// Proteção por IP: máximo 5 tentativas por hora por IP usando Cloudflare KV
 
 function gerarCpfAleatorio() {
   const rand = () => Math.floor(Math.random() * 9);
@@ -16,6 +16,9 @@ const corsHeaders = {
   "Content-Type": "application/json",
 };
 
+const LIMITE_TENTATIVAS = 5;      // máximo de PIX por IP
+const JANELA_SEGUNDOS   = 3600;   // janela de 1 hora (em segundos)
+
 export async function onRequest(context) {
   const { request, env } = context;
 
@@ -26,6 +29,46 @@ export async function onRequest(context) {
   if (request.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers: corsHeaders });
   }
+
+  // ──────────────────────────────────────────────────────────────
+  // PROTEÇÃO POR IP — Cloudflare KV
+  // ──────────────────────────────────────────────────────────────
+  if (env.PIX_RATELIMIT) {
+    // CF-Connecting-IP é o IP real do visitante injetado pelo Cloudflare
+    const ip = request.headers.get("CF-Connecting-IP") ||
+               request.headers.get("X-Forwarded-For")?.split(",")[0]?.trim() ||
+               "unknown";
+
+    const kvKey = `ratelimit:pix:${ip}`;
+
+    try {
+      // Lê o contador atual (retorna null se não existe)
+      const atual = await env.PIX_RATELIMIT.get(kvKey);
+      const contagem = atual ? parseInt(atual, 10) : 0;
+
+      if (contagem >= LIMITE_TENTATIVAS) {
+        console.log(`[RATE LIMIT] IP bloqueado: ${ip} — ${contagem} tentativas`);
+        return new Response(
+          JSON.stringify({
+            error: "Muitas tentativas. Aguarde 1 hora antes de tentar novamente.",
+            bloqueado: true,
+          }),
+          { status: 429, headers: corsHeaders }
+        );
+      }
+
+      // Incrementa o contador; se for a primeira vez, define o TTL de 1 hora
+      await env.PIX_RATELIMIT.put(kvKey, String(contagem + 1), {
+        expirationTtl: JANELA_SEGUNDOS,
+      });
+
+      console.log(`[RATE LIMIT] IP: ${ip} — tentativa ${contagem + 1}/${LIMITE_TENTATIVAS}`);
+    } catch (kvErr) {
+      // Se o KV falhar por algum motivo, não bloqueia o cliente (fail open)
+      console.error("[RATE LIMIT] Erro ao verificar KV:", kvErr);
+    }
+  }
+  // ──────────────────────────────────────────────────────────────
 
   const apiToken    = env.IRONPAY_API_TOKEN;
   const offerHash   = env.IRONPAY_OFFER_HASH;
@@ -51,7 +94,6 @@ export async function onRequest(context) {
   const cpfDigits = document ? String(document).replace(/\D/g, "") : "";
   const payerDocument = cpfDigits.length === 11 ? cpfDigits : gerarCpfAleatorio();
 
-  // Em Cloudflare Pages, use a variavel SITE_URL configurada no painel
   const siteUrl = env.SITE_URL || "";
   const webhookUrl = siteUrl ? `${siteUrl}/api/pix/webhook` : undefined;
 
