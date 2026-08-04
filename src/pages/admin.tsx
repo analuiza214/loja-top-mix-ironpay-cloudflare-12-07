@@ -3,13 +3,8 @@ import { Phone, Mail, User, Package, RefreshCw, ShoppingBag, Lock, CreditCard, E
 import { supabase, type Lead } from "@/lib/supabase";
 import { decryptData } from "@/lib/encrypt";
 
-const HASH = "d2d03c89b0fb97c2d658fab134e24885a22f0a94d43f4af7331ee1e4d3674c4e";
-const SESSION_KEY = "adm_auth";
-
-async function sha256(text: string) {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
-}
+// Chave de sessão — armazena o token JWT assinado pelo servidor (não mais um simples "1")
+const SESSION_KEY = "adm_token";
 
 const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }> = {
   checkout_iniciado: { label: "Iniciou checkout", color: "#b45309", bg: "#fef3c7" },
@@ -616,24 +611,37 @@ Qualquer coisa só entrar em contato`;
   );
 }
 
-// ─── Tela de login ────────────────────────────────────────────────────────────
+// ─── Tela de login (autenticação server-side via Cloudflare Functions) ───────
+// A senha NUNCA aparece no código-fonte — ela fica em variáveis de ambiente
+// na Cloudflare (ADMIN_USER e ADMIN_PASS), acessíveis só por você.
 function LoginGate({ onAuth }: { onAuth: () => void }) {
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState(false);
+  const [usuario, setUsuario] = useState("");
+  const [senha, setSenha] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(false);
-    const h = await sha256(password);
-    if (h === HASH) {
-      sessionStorage.setItem(SESSION_KEY, "1");
-      onAuth();
-    } else {
-      setError(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usuario, senha }),
+      });
+      const data = await res.json();
+      if (res.ok && data.token) {
+        sessionStorage.setItem(SESSION_KEY, data.token);
+        onAuth();
+      } else {
+        setError(data.error ?? "Usuário ou senha incorretos.");
+      }
+    } catch {
+      setError("Erro de conexão. Tente novamente.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -644,21 +652,30 @@ function LoginGate({ onAuth }: { onAuth: () => void }) {
             <Lock className="h-6 w-6 text-white" />
           </div>
           <h1 className="font-black text-gray-900 text-lg">Admin TopMix</h1>
-          <p className="text-xs text-gray-400 mt-1">Digite a senha para continuar</p>
+          <p className="text-xs text-gray-400 mt-1">Entre com suas credenciais de administrador</p>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <input
-            type="password"
-            value={password}
-            onChange={e => { setPassword(e.target.value); setError(false); }}
-            placeholder="Senha"
+            type="text"
+            value={usuario}
+            onChange={e => { setUsuario(e.target.value); setError(null); }}
+            placeholder="Usuário"
             autoFocus
+            autoComplete="username"
             className={`w-full border rounded-xl px-4 py-3 text-sm outline-none transition-colors ${error ? "border-red-400 bg-red-50" : "border-gray-200 focus:border-green-400"}`}
           />
-          {error && <p className="text-xs text-red-500 text-center">Senha incorreta. Tente novamente.</p>}
+          <input
+            type="password"
+            value={senha}
+            onChange={e => { setSenha(e.target.value); setError(null); }}
+            placeholder="Senha"
+            autoComplete="current-password"
+            className={`w-full border rounded-xl px-4 py-3 text-sm outline-none transition-colors ${error ? "border-red-400 bg-red-50" : "border-gray-200 focus:border-green-400"}`}
+          />
+          {error && <p className="text-xs text-red-500 text-center">{error}</p>}
           <button
             type="submit"
-            disabled={loading || !password}
+            disabled={loading || !usuario || !senha}
             className="w-full py-3 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
             style={{ background: "#15803d" }}
           >
@@ -1125,13 +1142,45 @@ function AdminPanel() {
   );
 }
 
-// ─── Exportação principal (com portão de senha) ────────────────────────────────
+// ─── Exportação principal (portão server-side) ────────────────────────────────
 export default function Admin() {
   const [authed, setAuthed] = useState(false);
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    if (sessionStorage.getItem(SESSION_KEY) === "1") setAuthed(true);
+    const token = sessionStorage.getItem(SESSION_KEY);
+    if (!token) {
+      setChecking(false);
+      return;
+    }
+    // Verifica o token no servidor a cada carregamento da página.
+    // Assim, mesmo que alguém copie o token manualmente, o servidor valida
+    // a assinatura criptográfica e a expiração (8 horas).
+    fetch("/api/admin-verify", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.valid) {
+          setAuthed(true);
+        } else {
+          sessionStorage.removeItem(SESSION_KEY);
+        }
+      })
+      .catch(() => {
+        // Em caso de erro de rede, limpa o token por segurança
+        sessionStorage.removeItem(SESSION_KEY);
+      })
+      .finally(() => setChecking(false));
   }, []);
+
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-4 border-gray-200 border-t-green-600 animate-spin" />
+      </div>
+    );
+  }
 
   if (!authed) return <LoginGate onAuth={() => setAuthed(true)} />;
   return <AdminPanel />;
