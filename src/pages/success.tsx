@@ -1018,6 +1018,6 @@ export default function Success() {
           <span className="flex items-center gap-1">📱 Qualquer banco</span>
         </div>
       </motion.div>
-    </motion.div> sssss
+    </motion.div>
   );
 }
