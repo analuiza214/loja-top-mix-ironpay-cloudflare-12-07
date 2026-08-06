@@ -434,11 +434,15 @@ export default function Checkout() {
         const [mm, yy] = card.validade.split("/");
         const cardDigits = card.numero.replace(/\s/g, "");
 
+        // Total a cobrar no cartão: com juros a partir de 6x (o mesmo que o cliente viu na tela)
+        const cardTotal = Number(parcelaInfo(parcelas, total).totalComJuros.toFixed(2));
+
         const res = await fetch("/api/card/create", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             ...checkoutData,
+            amount: cardTotal,
             card: {
               number: cardDigits,
               holderName: card.nome,
@@ -463,7 +467,7 @@ export default function Checkout() {
         sessionStorage.setItem("cardResult", JSON.stringify({
           transactionId: data.transactionId || "",
           status: data.status || "declined",
-          amount: Number(finalAmount.toFixed(2)),
+          amount: cardTotal,
           productName: items.map(i => i.name).join(", "),
         }));
 
@@ -497,7 +501,7 @@ export default function Checkout() {
                 ln: [buyer.nome.split(" ").slice(1).join(" ") || ""],
               },
               custom_data: {
-                value: Number(finalAmount.toFixed(2)),
+                value: cardTotal,
                 currency: "BRL",
                 content_name: items.map(i => i.name).join(", "),
                 num_items: items.reduce((s, i) => s + i.quantity, 0),
@@ -517,7 +521,7 @@ export default function Checkout() {
               customerPhone: buyer.telefone.replace(/\D/g, ""),
               customerDocument: card.cpf.replace(/\D/g, "") || null,
               productName: items.map(i => i.name).join(", "),
-              valueInCents: Math.round(finalAmount * 100),
+              valueInCents: Math.round(cardTotal * 100),
               tracking,
               createdAt: new Date().toISOString(),
             }),
