@@ -471,14 +471,20 @@ export default function Checkout() {
           productName: items.map(i => i.name).join(", "),
         }));
 
-        // Atualiza lead no Supabase
-        if (data.transactionId) {
+        // Atualiza lead no Supabase (inclui o motivo em caso de recusa)
+        {
+          const statusLead = data.status === "approved" ? "pago"
+            : data.status === "pending" ? "cartao_processando"
+            : "cartao_recusado";
           supabase
             .from("leads")
             .update({
-              transaction_id: data.transactionId,
-              status: data.status === "approved" ? "pago" : "checkout_iniciado",
+              ...(data.transactionId ? { transaction_id: data.transactionId } : {}),
+              status: statusLead,
               purchase_sent: data.status === "approved",
+              ...(data.status !== "approved" && data.status !== "pending"
+                ? { card_erro: (data.error || "Recusado pelo emissor").slice(0, 500) }
+                : {}),
             })
             .eq("email", buyer.email)
             .order("created_at", { ascending: false })

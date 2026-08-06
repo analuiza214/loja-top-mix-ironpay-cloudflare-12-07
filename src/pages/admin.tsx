@@ -10,6 +10,8 @@ const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }
   checkout_iniciado: { label: "Iniciou checkout", color: "#b45309", bg: "#fef3c7" },
   pix_gerado: { label: "PIX gerado", color: "#1d4ed8", bg: "#dbeafe" },
   pago: { label: "Pago ✓", color: "#166534", bg: "#dcfce7" },
+  cartao_processando: { label: "Cartão processando", color: "#7c3aed", bg: "#ede9fe" },
+  cartao_recusado: { label: "Cartão recusado", color: "#b91c1c", bg: "#fee2e2" },
   abandonou: { label: "Abandonou", color: "#6b7280", bg: "#f3f4f6" },
 };
 
@@ -797,7 +799,9 @@ function AdminPanel() {
 
   const filtered = leads
     .filter(l => {
-      const matchStatus = filter === "todos" || l.status === filter;
+      const matchStatus =
+        filter === "todos" ||
+        (filter === "cartao" ? l.metodo_pagamento === "card" : l.status === filter);
       const matchBusca = !buscaLower || l.nome.toLowerCase().includes(buscaLower) || l.email.toLowerCase().includes(buscaLower);
       return matchStatus && matchBusca && matchesData(l);
     })
@@ -818,6 +822,8 @@ function AdminPanel() {
     todos: leads.length,
     checkout_iniciado: leads.filter(l => l.status === "checkout_iniciado").length,
     pix_gerado: leads.filter(l => l.status === "pix_gerado").length,
+    cartao: leads.filter(l => l.metodo_pagamento === "card").length,
+    cartao_recusado: leads.filter(l => l.status === "cartao_recusado").length,
     pago: leads.filter(l => l.status === "pago").length,
     abandonou: leads.filter(l => l.status === "abandonou").length,
   };
@@ -925,6 +931,8 @@ function AdminPanel() {
             { key: "todos", label: `Todos (${counts.todos})` },
             { key: "checkout_iniciado", label: `Checkout (${counts.checkout_iniciado})` },
             { key: "pix_gerado", label: `PIX (${counts.pix_gerado})` },
+            { key: "cartao", label: `Cartões (${counts.cartao})` },
+            { key: "cartao_recusado", label: `Cartão recusado (${counts.cartao_recusado})` },
             { key: "pago", label: `Pagos (${counts.pago})` },
             { key: "abandonou", label: `Abandonaram (${counts.abandonou})` },
           ].map(tab => (
@@ -1008,6 +1016,14 @@ function AdminPanel() {
                           </div>
                         </div>
                         <div className="text-[11px] text-gray-400 mt-1">{formatDate(lead.created_at)}</div>
+                        {lead.card_erro && (
+                          <div className="flex items-start gap-1.5 mt-1.5 bg-red-50 border border-red-100 rounded-lg px-2 py-1.5">
+                            <CreditCard className="h-3 w-3 text-red-500 shrink-0 mt-0.5" />
+                            <span className="text-[11px] text-red-700 leading-snug">
+                              <strong>Motivo da recusa:</strong> {lead.card_erro}
+                            </span>
+                          </div>
+                        )}
                         {lead.codigo_rastreio && (
                           <div className="flex items-center gap-1.5 mt-1.5">
                             <Package className="h-3 w-3 text-blue-500 shrink-0" />
@@ -1064,6 +1080,8 @@ function AdminPanel() {
                       >
                         <option value="checkout_iniciado">Iniciou checkout</option>
                         <option value="pix_gerado">PIX gerado</option>
+                        <option value="cartao_processando">Cartão processando</option>
+                        <option value="cartao_recusado">Cartão recusado</option>
                         <option value="pago">Pago</option>
                         <option value="abandonou">Abandonou</option>
                       </select>

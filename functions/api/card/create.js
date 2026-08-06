@@ -177,20 +177,12 @@ export async function onRequest(context) {
 
     const data = await res.json();
 
-    // ── Loga resposta completa da FreePay (visível nos Cloudflare Logs) ────────
+    // Log resumido (sem dados do cliente) — visível nos Cloudflare Logs
     console.log(JSON.stringify({
-      event: "FREEPAY_CARD_RAW_RESPONSE",
+      event: "FREEPAY_CARD_RESPONSE",
       httpStatus: res.status,
       success: data.success,
-      data: data,
-      payloadSent: {
-        ...payload,
-        card: {
-          ...payload.card,
-          number: `****${cardNumber.slice(-4)}`,
-          cvv: "***",
-        },
-      },
+      errors: data.error_messages || null,
     }));
 
     // ── Trata erros da API ────────────────────────────────────────────────────
@@ -212,8 +204,6 @@ export async function onRequest(context) {
         JSON.stringify({
           status: isDeclined ? "declined" : "error",
           error: errMsg,
-          freepay_raw: data,           // resposta bruta para debug no browser
-          freepay_http_status: res.status,
         }),
         { status: 200, headers: corsHeaders }
       );
