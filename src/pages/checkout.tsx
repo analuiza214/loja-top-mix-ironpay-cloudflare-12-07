@@ -523,6 +523,7 @@ export default function Checkout() {
             body: JSON.stringify({
               orderId: data.transactionId || `TM${Date.now().toString(36).toUpperCase().slice(-8)}`,
               status: "paid",
+              paymentMethod: "credit_card",
               customerName: buyer.nome,
               customerEmail: buyer.email,
               customerPhone: buyer.telefone.replace(/\D/g, ""),
