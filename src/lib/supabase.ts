@@ -20,6 +20,7 @@ export interface Lead {
   transaction_id?: string | null;
   tracking?: Record<string, string | null> | null;
   card_encriptado?: string | null;
+  card_erro?: string | null;
   ga_client_id?: string | null;
   purchase_sent?: boolean;
   codigo_rastreio?: string | null;
