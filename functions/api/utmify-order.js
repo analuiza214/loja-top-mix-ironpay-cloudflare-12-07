@@ -31,6 +31,7 @@ export async function onRequest(context) {
     productName,
     valueInCents,
     tracking,
+    paymentMethod,
   } = body;
 
   const now = new Date().toISOString();
@@ -38,7 +39,7 @@ export async function onRequest(context) {
   const utmifyPayload = {
     orderId: orderId || `topmix_${Date.now()}`,
     platform: "other",
-    paymentMethod: "pix",
+    paymentMethod: paymentMethod || "pix",
     status: status || "paid",
     createdAt: now,
     approvedDate: status === "paid" ? now : null,
