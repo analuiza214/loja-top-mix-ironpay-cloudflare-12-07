@@ -336,6 +336,43 @@ export default function Success() {
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [payment]);
 
+  // ── Cartão aprovado: confirma pagamento assim que a animação termina ─────────
+  useEffect(() => {
+    if (payment !== "card" || phase !== "content") return;
+    const cardStatus = params.get("status");
+    if (cardStatus !== "approved") return;
+
+    // Lê resultado salvo pelo checkout
+    const rawResult = sessionStorage.getItem("cardResult");
+    let cardAmount = orderAmount;
+    let cardProduct = orderProductName;
+    let cardTxId = "";
+    if (rawResult) {
+      try {
+        const r = JSON.parse(rawResult) as { amount?: number; productName?: string; transactionId?: string };
+        if (r.amount && r.amount > 0) cardAmount = r.amount;
+        if (r.productName) cardProduct = r.productName;
+        cardTxId = r.transactionId || "";
+      } catch { /* ignored */ }
+    }
+
+    // Dispara eventos de Purchase (FB Pixel browser + GTM)
+    if (!trackingFired.current) {
+      trackingFired.current = true;
+      fireTrackingEvents(cardAmount, cardProduct);
+      pushEcommerceEvent("purchase", {
+        transaction_id: cardTxId || `card_${Date.now()}`,
+        currency: "BRL",
+        value: cardAmount,
+        payment_type: "credit_card",
+        items: [{ item_id: "topmix_order", item_name: cardProduct, price: cardAmount, quantity: 1 }],
+      }, { event_id: `card_${cardTxId || Date.now()}_purchase` });
+    }
+
+    clearCart();
+    setPaymentConfirmed(true);
+  }, [payment, phase, orderAmount, orderProductName]);
+
   // PIX: lê do sessionStorage (gerado no checkout via gateway)
   useEffect(() => {
     if (payment !== "pix" || hasFetched.current) return;
@@ -529,20 +566,60 @@ export default function Success() {
             <p className="text-gray-500 text-base leading-relaxed max-w-xs mx-auto">
               Seu pedido foi aprovado e está sendo preparado para envio.
             </p>
-            <p className="text-green-700 font-bold text-lg mt-3">
-              R$ {orderAmount.toFixed(2).replace(".", ",")}
-            </p>
           </motion.div>
-          <motion.button
+
+          {/* ── Aviso: código de rastreio enviado por e-mail ── */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.4 }}
+            className="mt-6 max-w-sm w-full bg-blue-50 border border-blue-200 rounded-xl p-4 text-left"
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
+                <svg viewBox="0 0 24 24" width={18} height={18} fill="none" stroke="#2563eb" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="4" width="20" height="16" rx="2" />
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-blue-900 mb-1">
+                  📦 Código de rastreio enviado por e-mail
+                </p>
+                <p className="text-xs text-blue-800 leading-relaxed">
+                  O código de rastreio do seu pedido já foi enviado para o seu e-mail.
+                  Não encontrou na caixa de entrada? Verifique também as pastas de{" "}
+                  <strong>Spam</strong> e <strong>Lixo Eletrônico</strong> — às vezes o
+                  e-mail pode parar por lá.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+          <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.4 }}
-            onClick={() => setLocation("/")}
-            className="mt-8 px-8 py-3.5 rounded-xl text-white font-bold text-base shadow-md hover:opacity-90 active:scale-95 transition-all"
-            style={{ background: "linear-gradient(135deg, #15803d, #22c55e)" }}
+            className="mt-8 flex flex-col items-center gap-3 w-full max-w-sm"
           >
-            Voltar à loja
-          </motion.button>
+            <button
+              onClick={() => setLocation("/")}
+              className="w-full px-8 py-3.5 rounded-xl text-white font-bold text-base shadow-md hover:opacity-90 active:scale-95 transition-all"
+              style={{ background: "linear-gradient(135deg, #15803d, #22c55e)" }}
+            >
+              Voltar à loja
+            </button>
+            <a
+              href="https://wa.me/5583991297085?text=Ol%C3%A1!%20Acabei%20de%20fazer%20uma%20compra%20e%20gostaria%20de%20confirmar%20meu%20pedido%20e%20pegar%20o%20c%C3%B3digo%20de%20rastreio."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full px-6 py-3 rounded-xl border-2 border-green-500 text-green-700 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-green-50 active:scale-95 transition-all"
+            >
+              <svg viewBox="0 0 24 24" width={18} height={18} fill="currentColor">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+              </svg>
+              Chamar no WhatsApp para pegar o código de rastreio
+            </a>
+          </motion.div>
         </motion.div>
       </AnimatePresence>
     );
