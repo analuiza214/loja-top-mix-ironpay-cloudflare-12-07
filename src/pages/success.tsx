@@ -373,6 +373,45 @@ export default function Success() {
     setPaymentConfirmed(true);
   }, [payment, phase, orderAmount, orderProductName]);
 
+  // ── Cartão pendente: consulta o status a cada 5s até confirmar (igual ao PIX) ─
+  useEffect(() => {
+    if (payment !== "card") return;
+    if (params.get("status") !== "pending") return;
+
+    const rawResult = sessionStorage.getItem("cardResult");
+    let cardTxId = "";
+    let cardAmount = orderAmount;
+    let cardProduct = orderProductName;
+    if (rawResult) {
+      try {
+        const r = JSON.parse(rawResult) as { amount?: number; productName?: string; transactionId?: string };
+        cardTxId = r.transactionId || "";
+        if (r.amount && r.amount > 0) cardAmount = r.amount;
+        if (r.productName) cardProduct = r.productName;
+      } catch { /* ignored */ }
+    }
+    if (!cardTxId) return;
+
+    const interval = setInterval(async () => {
+      pollCount.current += 1;
+      if (pollCount.current > MAX_POLLS) { clearInterval(interval); return; }
+      try {
+        const res = await fetch(`/api/card/status?id=${cardTxId}`);
+        const data = await res.json() as { status?: string };
+        if (data.status === "paid" || data.status === "approved") {
+          clearInterval(interval);
+          if (!trackingFired.current) {
+            trackingFired.current = true;
+            fireTrackingEvents(cardAmount, cardProduct);
+          }
+          clearCart();
+          setPaymentConfirmed(true);
+        }
+      } catch { /* ignored */ }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [payment, orderAmount, orderProductName]);
+
   // PIX: lê do sessionStorage (gerado no checkout via gateway)
   useEffect(() => {
     if (payment !== "pix" || hasFetched.current) return;
@@ -661,6 +700,27 @@ export default function Success() {
           className="w-20 h-20 rounded-full bg-green-500 flex items-center justify-center z-10 shadow-lg shadow-green-200"
         >
           <PixIcon size={38} />
+        </motion.div>
+      </div>
+    );
+  }
+
+  // ── Tela de cartão em processamento (aguarda confirmação via polling) ─────
+  if (payment === "card" && params.get("status") === "pending") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-2xl border border-gray-200 shadow-md w-full max-w-md px-6 py-10 flex flex-col items-center text-center"
+        >
+          <div className="w-16 h-16 rounded-full border-4 border-green-200 border-t-green-600 animate-spin mb-6" />
+          <h1 className="text-xl font-bold text-gray-900 mb-2">Processando pagamento…</h1>
+          <p className="text-sm text-gray-500 leading-relaxed">
+            Seu pagamento está sendo confirmado pela operadora do cartão.
+            <br />
+            Isso costuma levar apenas alguns segundos — não feche esta página.
+          </p>
         </motion.div>
       </div>
     );
