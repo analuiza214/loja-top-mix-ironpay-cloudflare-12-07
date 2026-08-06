@@ -467,6 +467,7 @@ export default function Checkout() {
         sessionStorage.setItem("cardResult", JSON.stringify({
           transactionId: data.transactionId || "",
           status: data.status || "declined",
+          error: data.error || "",
           amount: cardTotal,
           productName: items.map(i => i.name).join(", "),
         }));
