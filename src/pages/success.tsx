@@ -735,6 +735,20 @@ export default function Success() {
     const bankName = card?.bank?.name || "Cartão";
     const last4 = card?.last4 || "****";
 
+    // Detecta se a recusa foi pelo banco emissor (para mostrar aviso de verificação)
+    const rawResult = typeof window !== "undefined" ? sessionStorage.getItem("cardResult") : null;
+    const cardResult = rawResult
+      ? (() => { try { return JSON.parse(rawResult) as { error?: string }; } catch { return null; } })()
+      : null;
+    const erroTexto = (cardResult?.error || "").toLowerCase();
+    const isEmissor =
+      erroTexto.includes("emissor") ||
+      erroTexto.includes("issuer") ||
+      erroTexto.includes("do not honor") ||
+      erroTexto.includes("recusado pelo") ||
+      erroTexto.includes("not authorized") ||
+      erroTexto.includes("não autorizado");
+
     return (
       <AnimatePresence>
         <motion.div
@@ -765,11 +779,25 @@ export default function Success() {
               <p className="text-sm text-gray-400">{bankName} **** {last4}</p>
             </div>
             <div className="px-6 pb-8 space-y-3">
+              {/* Aviso especial quando o banco do cliente bloqueou por segurança */}
+              {isEmissor && (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3.5 flex gap-3 items-start mb-1">
+                  <span className="text-2xl leading-none mt-0.5">🔔</span>
+                  <div>
+                    <p className="text-sm font-bold text-blue-800 leading-snug mb-1">
+                      Verificação de segurança do seu banco
+                    </p>
+                    <p className="text-xs text-blue-700 leading-relaxed">
+                      Seu banco bloqueou a compra por segurança. <strong>Abra o app do seu banco agora</strong> — provavelmente há uma notificação pedindo para confirmar se foi você. Depois, tente o cartão novamente.
+                    </p>
+                  </div>
+                </div>
+              )}
               <p className="text-sm text-gray-600 text-center leading-relaxed mb-2">
-                Seu banco não autorizou o pagamento de{" "}
-                <strong>R$ {orderAmount.toFixed(2).replace(".", ",")}</strong>.<br />
-                Pague via Pix agora — mais rápido e com{" "}
-                <strong className="text-green-700">10% de desconto</strong>!
+                {isEmissor
+                  ? <>Ou pague via Pix agora — mais rápido e com{" "}<strong className="text-green-700">10% de desconto</strong>!</>
+                  : <>Seu banco não autorizou o pagamento de{" "}<strong>R$ {orderAmount.toFixed(2).replace(".", ",")}</strong>.<br />Pague via Pix agora — mais rápido e com{" "}<strong className="text-green-700">10% de desconto</strong>!</>
+                }
               </p>
               <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-center">
                 <p className="text-xs text-green-700 font-semibold">
