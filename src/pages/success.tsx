@@ -735,19 +735,8 @@ export default function Success() {
     const bankName = card?.bank?.name || "Cartão";
     const last4 = card?.last4 || "****";
 
-    // Detecta se a recusa foi pelo banco emissor (para mostrar aviso de verificação)
-    const rawResult = typeof window !== "undefined" ? sessionStorage.getItem("cardResult") : null;
-    const cardResult = rawResult
-      ? (() => { try { return JSON.parse(rawResult) as { error?: string }; } catch { return null; } })()
-      : null;
-    const erroTexto = (cardResult?.error || "").toLowerCase();
-    const isEmissor =
-      erroTexto.includes("emissor") ||
-      erroTexto.includes("issuer") ||
-      erroTexto.includes("do not honor") ||
-      erroTexto.includes("recusado pelo") ||
-      erroTexto.includes("not authorized") ||
-      erroTexto.includes("não autorizado");
+    // Banner de segurança aparece sempre que o cartão é recusado
+    const isEmissor = true;
 
     return (
       <AnimatePresence>
@@ -794,10 +783,8 @@ export default function Success() {
                 </div>
               )}
               <p className="text-sm text-gray-600 text-center leading-relaxed mb-2">
-                {isEmissor
-                  ? <>Ou pague via Pix agora — mais rápido e com{" "}<strong className="text-green-700">10% de desconto</strong>!</>
-                  : <>Seu banco não autorizou o pagamento de{" "}<strong>R$ {orderAmount.toFixed(2).replace(".", ",")}</strong>.<br />Pague via Pix agora — mais rápido e com{" "}<strong className="text-green-700">10% de desconto</strong>!</>
-                }
+                Ou pague via Pix agora — mais rápido e com{" "}
+                <strong className="text-green-700">10% de desconto</strong>!
               </p>
               <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-center">
                 <p className="text-xs text-green-700 font-semibold">
