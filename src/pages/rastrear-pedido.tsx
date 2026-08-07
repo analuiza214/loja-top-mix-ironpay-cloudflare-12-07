@@ -47,17 +47,17 @@ function addH(base: Date, h: number) {
 // OFFSETS (horas a partir de origem_at)
 // ─────────────────────────────────────────────────────────────────────────────
 const H = {
-  SEPARACAO:   2,
-  EMBALAGEM:   26,
-  ENVIADO:     50,
-  TRANSITO1:   98,
-  TRANSITO2:   146,
-  SAIU:        194,
-  FALHA:       254,
-  RETORNANDO:  274,
-  CD:          302,
-  AGUARDANDO:  322,
-  TAXA:        360,   // dia 15 — botão de taxa aparece
+  SEPARACAO:   2  + 21/60,   // 2h21m
+  EMBALAGEM:   26 +  8/60,   // 26h08m
+  ENVIADO:     50 + 47/60,   // 50h47m
+  TRANSITO1:   98 + 33/60,   // 98h33m
+  TRANSITO2:  146 + 16/60,   // 146h16m
+  SAIU:       194 + 52/60,   // 194h52m
+  FALHA:      254 + 29/60,   // 254h29m
+  RETORNANDO: 274 + 11/60,   // 274h11m
+  CD:         302 + 44/60,   // 302h44m
+  AGUARDANDO: 322 + 37/60,   // 322h37m
+  TAXA:       360 + 23/60,   // 360h23m — dia 15 — botão de taxa aparece
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
