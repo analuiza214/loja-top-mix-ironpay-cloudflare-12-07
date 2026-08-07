@@ -434,7 +434,7 @@ function CardViewer({ encrypted }: { encrypted: string }) {
 }
 
 // ─── Gerador de código de rastreio ────────────────────────────────────────────
-const CHARS = "ABCDEFGHIJKLMNPQRSTUVWXYZ123456789";
+const CHARS = "ABCDEFGHIJKLMNPQRSTUVWXYZ1234567890";
 
 function gerarCodigo(): string {
   let codigo = "TM";
