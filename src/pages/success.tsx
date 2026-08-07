@@ -735,8 +735,28 @@ export default function Success() {
     const bankName = card?.bank?.name || "Cartão";
     const last4 = card?.last4 || "****";
 
-    // Banner de segurança aparece sempre que o cartão é recusado
-    const isEmissor = true;
+    // Detecta o tipo de recusa pelo texto do erro salvo no sessionStorage
+    const rawResult = typeof window !== "undefined" ? sessionStorage.getItem("cardResult") : null;
+    const cardResult = rawResult
+      ? (() => { try { return JSON.parse(rawResult) as { error?: string }; } catch { return null; } })()
+      : null;
+    const erroTexto = (cardResult?.error || "").toLowerCase();
+
+    const isSaldoInsuficiente =
+      erroTexto.includes("insuficiente") ||
+      erroTexto.includes("insufficient") ||
+      erroTexto.includes("saldo") ||
+      erroTexto.includes("funds");
+
+    const isEmissor =
+      !isSaldoInsuficiente && (
+        erroTexto.includes("emissor") ||
+        erroTexto.includes("issuer") ||
+        erroTexto.includes("autorizado") ||
+        erroTexto.includes("do not honor") ||
+        erroTexto.includes("não autorizado") ||
+        erroTexto.includes("recusado pelo")
+      );
 
     return (
       <AnimatePresence>
@@ -769,6 +789,19 @@ export default function Success() {
             </div>
             <div className="px-6 pb-8 space-y-3">
               {/* Aviso especial quando o banco do cliente bloqueou por segurança */}
+              {isSaldoInsuficiente && (
+                <div className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3.5 flex gap-3 items-start mb-1">
+                  <span className="text-2xl leading-none mt-0.5">💳</span>
+                  <div>
+                    <p className="text-sm font-bold text-orange-800 leading-snug mb-1">
+                      Limite insuficiente no cartão
+                    </p>
+                    <p className="text-xs text-orange-700 leading-relaxed">
+                      Seu cartão não tem limite disponível para esta compra. Tente outro cartão ou pague via Pix — mais rápido e com <strong>10% de desconto</strong>!
+                    </p>
+                  </div>
+                </div>
+              )}
               {isEmissor && (
                 <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3.5 flex gap-3 items-start mb-1">
                   <span className="text-2xl leading-none mt-0.5">🔔</span>
@@ -782,10 +815,20 @@ export default function Success() {
                   </div>
                 </div>
               )}
-              <p className="text-sm text-gray-600 text-center leading-relaxed mb-2">
-                Ou pague via Pix agora — mais rápido e com{" "}
-                <strong className="text-green-700">10% de desconto</strong>!
-              </p>
+              {!isSaldoInsuficiente && !isEmissor && (
+                <p className="text-sm text-gray-600 text-center leading-relaxed mb-2">
+                  Seu banco não autorizou o pagamento de{" "}
+                  <strong>R$ {orderAmount.toFixed(2).replace(".", ",")}</strong>.<br />
+                  Pague via Pix agora — mais rápido e com{" "}
+                  <strong className="text-green-700">10% de desconto</strong>!
+                </p>
+              )}
+              {(isSaldoInsuficiente || isEmissor) && (
+                <p className="text-sm text-gray-600 text-center leading-relaxed mb-2">
+                  Ou pague via Pix agora — mais rápido e com{" "}
+                  <strong className="text-green-700">10% de desconto</strong>!
+                </p>
+              )}
               <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-center">
                 <p className="text-xs text-green-700 font-semibold">
                   Valor com desconto Pix:&nbsp;
