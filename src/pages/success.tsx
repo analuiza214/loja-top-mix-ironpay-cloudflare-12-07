@@ -748,15 +748,8 @@ export default function Success() {
       erroTexto.includes("saldo") ||
       erroTexto.includes("funds");
 
-    const isEmissor =
-      !isSaldoInsuficiente && (
-        erroTexto.includes("emissor") ||
-        erroTexto.includes("issuer") ||
-        erroTexto.includes("autorizado") ||
-        erroTexto.includes("do not honor") ||
-        erroTexto.includes("não autorizado") ||
-        erroTexto.includes("recusado pelo")
-      );
+    // Padrão: banner azul para qualquer recusa que não seja saldo insuficiente
+    const isEmissor = !isSaldoInsuficiente;
 
     return (
       <AnimatePresence>
