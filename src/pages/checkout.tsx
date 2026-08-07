@@ -304,7 +304,7 @@ export default function Checkout() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          orderId: `TM${Date.now().toString(36).toUpperCase().slice(-8)}`,
+          orderId: `TM${Date.now().toString(36).toUpperCase().slice(-8).replace(/O/g, "P").replace(/0/g, "9")}`,
           status: "waiting_payment",
           customerName: buyer.nome,
           customerEmail: buyer.email,
@@ -521,7 +521,7 @@ export default function Checkout() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              orderId: data.transactionId || `TM${Date.now().toString(36).toUpperCase().slice(-8)}`,
+              orderId: data.transactionId || `TM${Date.now().toString(36).toUpperCase().slice(-8).replace(/O/g, "P").replace(/0/g, "9")}`,
               status: "paid",
               paymentMethod: "credit_card",
               customerName: buyer.nome,
