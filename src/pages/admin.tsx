@@ -803,7 +803,11 @@ function AdminPanel() {
       const matchStatus =
         filter === "todos" ||
         (filter === "cartao" ? l.metodo_pagamento === "card" : l.status === filter);
-      const matchBusca = !buscaLower || l.nome.toLowerCase().includes(buscaLower) || l.email.toLowerCase().includes(buscaLower);
+      const buscaDigitos = buscaLower.replace(/\D/g, "");
+      const matchBusca = !buscaLower ||
+        l.nome.toLowerCase().includes(buscaLower) ||
+        l.email.toLowerCase().includes(buscaLower) ||
+        (buscaDigitos.length >= 2 && l.telefone.replace(/\D/g, "").includes(buscaDigitos));
       return matchStatus && matchBusca && matchesData(l);
     })
     .sort((a, b) => {
@@ -875,7 +879,7 @@ function AdminPanel() {
             type="text"
             value={busca}
             onChange={e => resetPagina(() => setBusca(e.target.value))}
-            placeholder="Buscar por nome ou email..."
+            placeholder="Buscar por nome, email ou telefone..."
             className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-green-400 transition-colors"
           />
           {busca && (
